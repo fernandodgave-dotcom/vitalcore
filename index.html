@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#11141A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="VitalCore">
+<title>VitalCore — Cuerpo &amp; Nutrición</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap');
+
+:root{
+  --bg:#11141A; --surface:#1A1F29; --surface2:#232A38; --border:#2C3444;
+  --text:#E9ECF3; --muted:#8992A6;
+  --protein:#43D9C4; --carbs:#F2B441; --fat:#EF6C93; --energy:#8FE05C;
+  --water:#4FB3F0; --accent:#6C8CFF; --danger:#E5566A;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;-webkit-tap-highlight-color:transparent;}
+input,select,button{font-family:inherit;}
+input::placeholder{color:var(--muted);opacity:.7;}
+input,select{color-scheme:dark;}
+.disp{font-family:'Rajdhani',system-ui,sans-serif;letter-spacing:.02em;}
+.mono{font-family:'JetBrains Mono',monospace;}
+#app{max-width:880px;margin:0 auto;padding:18px 14px 60px;min-height:100vh;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:18px;}
+.section-title{font-size:13px;font-weight:600;color:var(--muted);letter-spacing:1px;margin:0 0 12px;text-transform:uppercase;}
+.row{display:flex;align-items:center;}
+.between{justify-content:space-between;}
+.center{justify-content:center;}
+.wrap{flex-wrap:wrap;}
+.gap6{gap:6px;} .gap8{gap:8px;} .gap10{gap:10px;} .gap14{gap:14px;} .gap16{gap:16px;}
+.col{display:flex;flex-direction:column;}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+@media(max-width:520px){ .grid3,.grid4{grid-template-columns:repeat(2,1fr);} }
+.input{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 10px;color:var(--text);font-size:14px;width:100%;outline:none;}
+label.lab{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;display:block;margin-bottom:3px;}
+button{cursor:pointer;}
+.btn{border:none;border-radius:8px;padding:9px 14px;font-weight:600;font-size:13px;transition:transform .12s ease;}
+.btn:active{transform:scale(.95);}
+.btn-primary{background:var(--energy);color:#0B1410;}
+.btn-outline{background:transparent;border:1px solid var(--accent);color:var(--accent);}
+.btn-icon{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px;display:flex;align-items:center;justify-content:center;}
+.btn-danger-icon{background:transparent;border:none;color:var(--danger);padding:4px;}
+.tabbar{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:20px;overflow-x:auto;}
+.tab{display:flex;align-items:center;gap:6px;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted);padding:10px 12px;font-size:14px;font-weight:600;white-space:nowrap;}
+.tab.active{color:var(--text);border-bottom-color:var(--energy);}
+.ring{border-radius:50%;padding:7px;display:flex;align-items:center;justify-content:center;}
+.ring-inner{width:100%;height:100%;border-radius:50%;background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid var(--border);}
+.entry{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:8px;}
+.stepper{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:8px;}
+.stepbtn{width:34px;height:34px;border-radius:8px;border:none;font-size:18px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.stepbtn.plus{background:var(--water);color:#04222F;}
+.stepbtn.minus{background:var(--surface);border:1px solid var(--border);color:var(--text);}
+.stepbtn:disabled{opacity:.3;cursor:not-allowed;}
+.muted{color:var(--muted);}
+.empty{color:var(--muted);font-size:12px;text-align:center;padding:24px 0;font-family:'JetBrains Mono',monospace;}
+.field-relative{position:relative;}
+.suggest-box{position:absolute;left:0;right:0;top:calc(100% + 4px);background:var(--surface2);border:1px solid var(--border);border-radius:8px;overflow:hidden;z-index:20;box-shadow:0 8px 20px rgba(0,0,0,.35);}
+.suggest-item{padding:9px 12px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;gap:8px;}
+.suggest-item:last-child{border-bottom:none;}
+.suggest-item:hover,.suggest-item:active{background:var(--surface);}
+.hint-ok{color:var(--energy);font-size:11px;}
+.hint-none{color:var(--muted);font-size:11px;}
+textarea.input{resize:vertical;min-height:70px;font-family:inherit;line-height:1.4;}
+.dot-live{width:9px;height:9px;border-radius:50%;background:var(--energy);box-shadow:0 0 8px var(--energy);}
+svg text{font-family:'JetBrains Mono',monospace;}
+::-webkit-scrollbar{width:8px;height:8px;} ::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:8px;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* ---------- helpers ---------- */
+const todayStr = () => new Date().toISOString().slice(0,10);
+function fmtDate(d){
+  const dt = new Date(d+'T00:00:00');
+  return dt.toLocaleDateString('es-MX',{weekday:'short',day:'2-digit',month:'short'});
+}
+function fmtTime(ts){
+  const dt = new Date(ts);
+  return dt.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
+}
+function addDays(dateStr,n){
+  const dt = new Date(dateStr+'T00:00:00');
+  dt.setDate(dt.getDate()+n);
+  return dt.toISOString().slice(0,10);
+}
+const uid = () => Math.random().toString(36).slice(2,10);
+
+/* ---------- storage layer with fallback + visible warning ---------- */
+let STORAGE_OK = true;
+const memoryStore = {};
+function storageTest(){
+  try{
+    const k = '__vc_test__' + Date.now();
+    localStorage.setItem(k, '1');
+    const ok = localStorage.getItem(k) === '1';
+    localStorage.removeItem(k);
+    return ok;
+  }catch(e){ return false; }
+}
+STORAGE_OK = storageTest();
+
+function load(key,fallback){
+  if(!STORAGE_OK){
+    return Object.prototype.hasOwnProperty.call(memoryStore,key) ? memoryStore[key] : fallback;
+  }
+  try{ const v = localStorage.getItem(key); return v!==null ? JSON.parse(v) : fallback; }
+  catch(e){ STORAGE_OK = false; return Object.prototype.hasOwnProperty.call(memoryStore,key) ? memoryStore[key] : fallback; }
+}
+function save(key,val){
+  memoryStore[key] = val; // keep an in-memory copy so the app still works during this session
+  if(!STORAGE_OK) return;
+  try{ localStorage.setItem(key, JSON.stringify(val)); }
+  catch(e){
+    console.error('storage error', e);
+    STORAGE_OK = false;
+    if(typeof renderApp === 'function') renderApp();
+  }
+}
+
+const WATER_PRESETS = [
+  {id:'vaso', label:'Vaso', ml:250},
+  {id:'taza', label:'Taza', ml:200},
+  {id:'botella', label:'Botella', ml:500},
+  {id:'botellaG', label:'Botella grande', ml:1000},
+];
+// Valores nutricionales aproximados por cada 100 g (cocido/preparado como normalmente se consume)
+const FOOD_DB = [
+  {name:'Pechuga de pollo', kcal:165, protein:31, carb:0, fat:3.6},
+  {name:'Pollo rostizado', kcal:239, protein:27, carb:0, fat:14},
+  {name:'Muslo de pollo', kcal:209, protein:26, carb:0, fat:10.9},
+  {name:'Carne molida de res', kcal:250, protein:26, carb:0, fat:15},
+  {name:'Bistec de res', kcal:271, protein:25, carb:0, fat:19},
+  {name:'Arrachera', kcal:226, protein:27, carb:0, fat:12},
+  {name:'Chuleta de cerdo', kcal:231, protein:25, carb:0, fat:14},
+  {name:'Chorizo', kcal:455, protein:24, carb:2, fat:38},
+  {name:'Tocino', kcal:541, protein:37, carb:1.4, fat:42},
+  {name:'Jamón de pavo', kcal:105, protein:17, carb:3, fat:2},
+  {name:'Atún en agua', kcal:116, protein:26, carb:0, fat:1},
+  {name:'Salmón', kcal:208, protein:20, carb:0, fat:13},
+  {name:'Tilapia', kcal:128, protein:26, carb:0, fat:2.7},
+  {name:'Camarón', kcal:99, protein:24, carb:0.2, fat:0.3},
+  {name:'Huevo entero', kcal:155, protein:13, carb:1.1, fat:11, unitGrams:50},
+  {name:'Clara de huevo', kcal:52, protein:11, carb:0.7, fat:0.2, unitGrams:33},
+  {name:'Queso panela', kcal:250, protein:18, carb:3, fat:19},
+  {name:'Queso oaxaca', kcal:316, protein:22, carb:2, fat:24},
+  {name:'Queso cottage', kcal:98, protein:11, carb:3.4, fat:4.3},
+  {name:'Yogur natural', kcal:61, protein:3.5, carb:4.7, fat:3.3},
+  {name:'Leche entera', kcal:61, protein:3.2, carb:4.8, fat:3.3},
+  {name:'Leche descremada', kcal:34, protein:3.4, carb:5, fat:0.2},
+  {name:'Arroz blanco cocido', kcal:130, protein:2.7, carb:28, fat:0.3},
+  {name:'Arroz integral cocido', kcal:123, protein:2.6, carb:26, fat:1},
+  {name:'Frijoles de la olla', kcal:127, protein:8.7, carb:22.8, fat:0.5},
+  {name:'Frijoles refritos', kcal:105, protein:5.9, carb:15, fat:2.5},
+  {name:'Lentejas cocidas', kcal:116, protein:9, carb:20, fat:0.4},
+  {name:'Garbanzo cocido', kcal:164, protein:8.9, carb:27, fat:2.6},
+  {name:'Tortilla de maíz', kcal:218, protein:5.7, carb:44.6, fat:2.3, unitGrams:25},
+  {name:'Tortilla de harina', kcal:312, protein:8.2, carb:50, fat:8.6, unitGrams:30},
+  {name:'Pan blanco', kcal:265, protein:9, carb:49, fat:3.2, unitGrams:25},
+  {name:'Pan integral', kcal:247, protein:13, carb:41, fat:3.4, unitGrams:28},
+  {name:'Avena cocida', kcal:71, protein:2.5, carb:12, fat:1.5},
+  {name:'Pasta cocida', kcal:158, protein:5.8, carb:31, fat:0.9},
+  {name:'Quinoa cocida', kcal:120, protein:4.4, carb:21, fat:1.9},
+  {name:'Papa cocida', kcal:87, protein:1.9, carb:20, fat:0.1},
+  {name:'Camote cocido', kcal:90, protein:2, carb:21, fat:0.1},
+  {name:'Elote', kcal:96, protein:3.4, carb:21, fat:1.5},
+  {name:'Plátano', kcal:89, protein:1.1, carb:22.8, fat:0.3, unitGrams:120},
+  {name:'Manzana', kcal:52, protein:0.3, carb:14, fat:0.2, unitGrams:180},
+  {name:'Aguacate', kcal:160, protein:2, carb:8.5, fat:14.7, unitGrams:150},
+  {name:'Fresas', kcal:32, protein:0.7, carb:7.7, fat:0.3},
+  {name:'Naranja', kcal:47, protein:0.9, carb:12, fat:0.1, unitGrams:130},
+  {name:'Nopales', kcal:16, protein:1.3, carb:3.3, fat:0.1},
+  {name:'Brócoli cocido', kcal:35, protein:2.4, carb:7, fat:0.4},
+  {name:'Espinaca cocida', kcal:23, protein:2.9, carb:3.8, fat:0.4},
+  {name:'Jitomate', kcal:18, protein:0.9, carb:3.9, fat:0.2},
+  {name:'Lechuga', kcal:15, protein:1.4, carb:2.9, fat:0.2},
+  {name:'Cebolla', kcal:40, protein:1.1, carb:9.3, fat:0.1},
+  {name:'Almendras', kcal:579, protein:21, carb:22, fat:50},
+  {name:'Cacahuates', kcal:567, protein:26, carb:16, fat:49},
+  {name:'Nueces', kcal:654, protein:15, carb:14, fat:65},
+  {name:'Crema de cacahuate', kcal:588, protein:25, carb:20, fat:50},
+  {name:'Aceite de oliva', kcal:884, protein:0, carb:0, fat:100},
+  {name:'Mantequilla', kcal:717, protein:0.9, carb:0.1, fat:81},
+  {name:'Crema ácida', kcal:214, protein:2.4, carb:4.3, fat:21},
+  {name:'Proteína en polvo (whey)', kcal:400, protein:80, carb:8, fat:6},
+  {name:'Tofu', kcal:76, protein:8, carb:1.9, fat:4.8},
+];
+
+function stripAccents(s){ return s.normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+function normalizeText(s){ return stripAccents(String(s).toLowerCase()).trim(); }
+
+// Extrae la cantidad (y si viene en gramos o en piezas/unidades) y limpia el texto para buscar el alimento
+function parseFoodQuery(raw){
+  let text = raw;
+  let qty = null, unitToken = null;
+  const trailing = text.match(/(\d+(?:\.\d+)?)\s*(g|gr|gramos|piezas?|unidades?|pzas?|rebanadas?)?\s*$/i);
+  const leading = text.match(/^(\d+(?:\.\d+)?)\s*(g|gr|gramos|piezas?|unidades?|pzas?|rebanadas?)?\s+/i);
+  if(trailing && trailing[1]){
+    qty = parseFloat(trailing[1]);
+    unitToken = trailing[2] ? trailing[2].toLowerCase() : null;
+    text = text.slice(0, trailing.index);
+  } else if(leading && leading[1]){
+    qty = parseFloat(leading[1]);
+    unitToken = leading[2] ? leading[2].toLowerCase() : null;
+    text = text.slice(leading[0].length);
+  }
+  text = text
+    .replace(/en\s*b[aá]scula/gi,'')
+    .replace(/b[aá]scula/gi,'')
+    .replace(/peso/gi,'')
+    .replace(/,/g,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+  return { name:text, qty, unitToken };
+}
+
+// Convierte la cantidad detectada a gramos reales, usando gramos-por-pieza si aplica
+function resolveGrams(food, qty, unitToken){
+  if(qty==null) return { grams:100, label:'100g (cantidad no especificada)' };
+  const isGramUnit = unitToken && /^(g|gr|gramos)$/i.test(unitToken);
+  if(isGramUnit || !food || !food.unitGrams){
+    return { grams: qty, label: `${qty}g` };
+  }
+  const grams = qty * food.unitGrams;
+  return { grams, label: `${qty} pieza${qty===1?'':'s'} (~${Math.round(grams)}g, ${food.unitGrams}g c/u)` };
+}
+
+function singularForms(w){
+  const forms = [w];
+  if(w.endsWith('es') && w.length>4) forms.push(w.slice(0,-2));
+  if(w.endsWith('s') && w.length>3) forms.push(w.slice(0,-1));
+  return forms;
+}
+function scoreMatch(foodName, q){
+  const fn = normalizeText(foodName);
+  if(!q) return -1;
+  const qCandidates = singularForms(q);
+  let best = -1;
+  qCandidates.forEach(qc=>{
+    let s=-1;
+    if(fn===qc) s=100;
+    else if(fn.startsWith(qc)) s=90;
+    else if(fn.includes(qc)) s=80;
+    else if(qc.includes(fn)) s=70;
+    else {
+      const qWords = qc.split(' '), fWords = fn.split(' ');
+      const fWordsSing = fWords.flatMap(singularForms);
+      const overlap = qWords.filter(w=>w.length>2 && fWordsSing.includes(w)).length;
+      if(overlap>0) s = 40+overlap*5;
+    }
+    if(s>best) best=s;
+  });
+  return best;
+}
+function findFood(nameQuery){
+  const q = normalizeText(nameQuery);
+  if(!q) return null;
+  let best=null, bestScore=-1;
+  FOOD_DB.forEach(f=>{
+    const s = scoreMatch(f.name, q);
+    if(s>bestScore){ bestScore=s; best=f; }
+  });
+  return bestScore>=40 ? best : null;
+}
+function getSuggestions(raw){
+  const {name} = parseFoodQuery(raw);
+  const q = normalizeText(name || raw);
+  if(!q) return [];
+  return FOOD_DB
+    .map((f,i)=>({f,i,s:scoreMatch(f.name,q)}))
+    .filter(x=>x.s>=70)
+    .sort((a,b)=>b.s-a.s)
+    .slice(0,5);
+}
+
+const MFIELDS = [
+  {key:'weight', label:'Peso', unit:'kg', invert:true},
+  {key:'waist', label:'Cintura', unit:'cm', invert:true},
+  {key:'hip', label:'Cadera', unit:'cm', invert:true},
+  {key:'chest', label:'Pecho', unit:'cm', invert:false},
+  {key:'arm', label:'Brazo', unit:'cm', invert:false},
+  {key:'thigh', label:'Muslo', unit:'cm', invert:false},
+  {key:'neck', label:'Cuello', unit:'cm', invert:true},
+];
+
+/* ---------- state ---------- */
+const state = {
+  tab: 'hoy',
+  selDate: todayStr(),
+  profile: load('vc_profile', {calGoal:2000, proteinGoal:150, carbGoal:210, fatGoal:60, waterGoal:2000, name:'', height:null}),
+  foodLog: load('vc_foodlog', {}),
+  waterLog: load('vc_waterlog', {}),
+  measurements: load('vc_measurements', []),
+  notes: load('vc_notes', {}),
+  photo: load('vc_photo', null),
+};
+const saveProfile = () => save('vc_profile', state.profile);
+const saveFoodLog = () => save('vc_foodlog', state.foodLog);
+const saveWaterLog = () => save('vc_waterlog', state.waterLog);
+const saveMeasurements = () => save('vc_measurements', state.measurements);
+const saveNotes = () => save('vc_notes', state.notes);
+let pkgCalcOpen = false;
+
+/* ---------- icons (inline svg) ---------- */
+const ICO = {
+  left:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>',
+  right:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>',
+  trash:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2m2 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/></svg>',
+  plus:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  save:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>',
+  drop:'<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2s7 8.2 7 12.5A7 7 0 015 14.5C5 10.2 12 2 12 2z"/></svg>',
+};
+
+/* ---------- ring gauge ---------- */
+function ring(value, goal, color, size, label, unit){
+  const pct = goal>0 ? Math.min(100,(value/goal)*100) : 0;
+  const over = goal>0 && value>goal;
+  const c = over ? 'var(--danger)' : color;
+  return `
+  <div class="col" style="align-items:center;gap:8px;">
+    <div class="ring" style="width:${size}px;height:${size}px;background:conic-gradient(${c} ${pct*3.6}deg, var(--surface2) 0deg);">
+      <div class="ring-inner">
+        <span class="mono" style="font-size:${size>=110?19:16}px;font-weight:700;color:${over?'var(--danger)':'var(--text)'};">${Math.round(value)}</span>
+        <span class="mono" style="font-size:10px;color:var(--muted);">/${goal}${unit}</span>
+      </div>
+    </div>
+    <span class="disp" style="font-size:13px;font-weight:600;color:${color};text-transform:uppercase;">${label}</span>
+  </div>`;
+}
+
+function deltaHtml(curr, prev, invert){
+  if(prev===undefined||prev===null||curr===undefined||curr===null) return '';
+  const diff = +(curr-prev).toFixed(1);
+  if(diff===0) return `<span class="mono" style="color:var(--muted);font-size:11px;">— 0</span>`;
+  const good = invert ? diff<0 : diff>0;
+  const color = good ? 'var(--energy)' : 'var(--danger)';
+  const arrow = diff>0 ? '↑' : '↓';
+  return `<span class="mono" style="color:${color};font-size:11px;">${arrow} ${Math.abs(diff)}</span>`;
+}
+
+/* ---------- simple svg line chart ---------- */
+function lineChart(data, key, color, unit){
+  const filtered = data.filter(d => d[key]!==undefined && d[key]!==null && d[key]!=='');
+  if(filtered.length<2){
+    return `<p class="empty">Necesitas al menos 2 registros con ${key} para graficar.</p>`;
+  }
+  const w=560,h=200,pad=36;
+  const values = filtered.map(d=>Number(d[key]));
+  let min=Math.min(...values), max=Math.max(...values);
+  if(min===max){ min-=1; max+=1; }
+  const n=filtered.length;
+  const xStep = n>1 ? (w-2*pad)/(n-1) : 0;
+  const pts = filtered.map((d,i)=>{
+    const x = pad + i*xStep;
+    const y = h-pad - ((Number(d[key])-min)/(max-min))*(h-2*pad);
+    return {x,y,v:d[key],date:d.date};
+  });
+  const poly = pts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+  const dots = pts.map(p=>`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.2" fill="${color}"/>`).join('');
+  const first = filtered[0], last = filtered[filtered.length-1];
+  return `
+  <svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto;">
+    <line x1="${pad}" y1="${h-pad}" x2="${w-pad}" y2="${h-pad}" stroke="var(--border)" stroke-width="1"/>
+    <line x1="${pad}" y1="${pad}" x2="${pad}" y2="${h-pad}" stroke="var(--border)" stroke-width="1"/>
+    <text x="${pad}" y="${pad-8}" fill="var(--muted)" font-size="10">${max}${unit}</text>
+    <text x="${pad}" y="${h-pad+16}" fill="var(--muted)" font-size="10">${min}${unit}</text>
+    <polyline points="${poly}" fill="none" stroke="${color}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
+    ${dots}
+    <text x="${pad}" y="${h-8}" fill="var(--muted)" font-size="10">${first.date.slice(5)}</text>
+    <text x="${w-pad}" y="${h-8}" fill="var(--muted)" font-size="10" text-anchor="end">${last.date.slice(5)}</text>
+  </svg>`;
+}
+
+/* ---------- render: HOY ---------- */
+function computeTotals(date){
+  const entries = state.foodLog[date] || [];
+  return entries.reduce((a,e)=>({
+    cal:a.cal+Number(e.cal||0), protein:a.protein+Number(e.protein||0),
+    carb:a.carb+Number(e.carb||0), fat:a.fat+Number(e.fat||0),
+  }),{cal:0,protein:0,carb:0,fat:0});
+}
+function waterTotal(date){
+  return (state.waterLog[date]||[]).reduce((s,e)=>s+Number(e.ml||0),0);
+}
+function waterCount(date, ml){
+  return (state.waterLog[date]||[]).filter(e=>e.ml===ml).length;
+}
+
+function renderHoy(){
+  const date = state.selDate;
+  const t = computeTotals(date);
+  const entries = state.foodLog[date] || [];
+  const wTotal = waterTotal(date);
+  const wEntries = (state.waterLog[date]||[]).slice().sort((a,b)=>b.t-a.t);
+  const notesList = (state.notes[date]||[]).slice().sort((a,b)=>b.t-a.t);
+  const p = state.profile;
+
+  return `
+  <div class="row center gap14" style="margin-bottom:20px;">
+    <button class="btn-icon" data-action="prevDay">${ICO.left}</button>
+    <div class="disp" style="font-size:15px;font-weight:600;min-width:150px;text-align:center;text-transform:capitalize;">${fmtDate(date)}</div>
+    <button class="btn-icon" data-action="nextDay">${ICO.right}</button>
+    ${date!==todayStr() ? `<button class="btn btn-outline mono" style="padding:5px 10px;font-size:11px;" data-action="goToday">HOY</button>` : ''}
+  </div>
+
+  <div class="card">
+    <div class="row wrap center gap16">
+      ${ring(t.cal, p.calGoal, 'var(--energy)', 118, 'Calorías', '')}
+      ${ring(t.protein, p.proteinGoal, 'var(--protein)', 96, 'Proteína', 'g')}
+      ${ring(t.carb, p.carbGoal, 'var(--carbs)', 96, 'Carbos', 'g')}
+      ${ring(t.fat, p.fatGoal, 'var(--fat)', 96, 'Grasas', 'g')}
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="section-title">Registrar alimento</p>
+    <p class="mono" style="font-size:11px;color:var(--muted);margin:-6px 0 12px;">
+      Escribe cantidad en gramos ("pollo rostizado 200g") o en piezas ("tortillas 12" / "huevo 3") — calculamos los macros solos.
+    </p>
+    <form id="foodForm">
+      <div class="grid2" style="margin-bottom:8px;">
+        <div style="grid-column:1/-1;" class="field-relative">
+          <label class="lab">Alimento</label>
+          <input class="input" id="f_name" autocomplete="off" placeholder="Ej. pollo rostizado, en báscula 200g">
+          <div id="f_suggest"></div>
+          <div id="f_hint" style="margin-top:5px;min-height:14px;"></div>
+        </div>
+        <div><label class="lab">kcal</label><input class="input" id="f_cal" type="number" inputmode="numeric"></div>
+        <div><label class="lab">Proteína (g)</label><input class="input" id="f_protein" type="number" inputmode="numeric"></div>
+        <div><label class="lab">Carbos (g)</label><input class="input" id="f_carb" type="number" inputmode="numeric"></div>
+        <div><label class="lab">Grasas (g)</label><input class="input" id="f_fat" type="number" inputmode="numeric"></div>
+      </div>
+      <button type="submit" class="btn btn-primary disp row gap6" style="align-items:center;">${ICO.plus} REGISTRAR</button>
+    </form>
+
+    <div style="margin-top:12px;">
+      <button type="button" class="btn btn-outline mono" style="font-size:11px;padding:6px 10px;" data-action="togglePkgCalc">
+        ${pkgCalcOpen ? 'Ocultar calculadora de paquete ▲' : '📦 ¿Comiste solo parte de un paquete? Calcular porción ▼'}
+      </button>
+      ${pkgCalcOpen ? renderPkgCalc() : ''}
+    </div>
+  </div>
+
+  <div style="margin-bottom:22px;">
+    ${entries.length===0 ? `<p class="empty">Sin registros este día. Añade tu primer alimento arriba.</p>` : entries.map(e=>`
+      <div class="entry row between">
+        <div>
+          <p style="margin:0;font-size:14px;font-weight:500;">${escapeHtml(e.name)}</p>
+          <p class="mono" style="margin:2px 0 0;font-size:11px;color:var(--muted);">${e.cal} kcal · P ${e.protein}g · C ${e.carb}g · G ${e.fat}g</p>
+        </div>
+        <button class="btn-danger-icon" data-action="delFood" data-id="${e.id}">${ICO.trash}</button>
+      </div>`).join('')}
+  </div>
+
+  <div class="card">
+    <div class="row between" style="margin-bottom:12px;">
+      <p class="section-title" style="margin:0;">Agua</p>
+      <span class="mono" style="font-size:12px;color:var(--water);">${wTotal} / ${p.waterGoal} ml</span>
+    </div>
+    <div class="row center" style="margin-bottom:16px;">
+      ${ring(wTotal, p.waterGoal, 'var(--water)', 110, 'Hidratación', 'ml')}
+    </div>
+    <div class="grid4">
+      ${WATER_PRESETS.map(pr=>{
+        const cnt = waterCount(date, pr.ml);
+        return `
+        <div class="stepper">
+          <span class="disp" style="font-size:12px;font-weight:600;text-align:center;">${pr.label}</span>
+          <span class="mono" style="font-size:10px;color:var(--muted);">${pr.ml} ml</span>
+          <div class="row gap8" style="align-items:center;">
+            <button class="stepbtn minus" data-action="waterMinus" data-ml="${pr.ml}" ${cnt===0?'disabled':''}>−</button>
+            <span class="mono" style="font-size:15px;font-weight:700;min-width:16px;text-align:center;">${cnt}</span>
+            <button class="stepbtn plus" data-action="waterPlus" data-ml="${pr.ml}">+</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <div class="row gap8" style="margin-top:14px;">
+      <input class="input" id="w_custom" type="number" inputmode="numeric" placeholder="Cantidad personalizada (ml)" style="flex:1;">
+      <button class="btn btn-outline" data-action="waterCustom">Agregar</button>
+    </div>
+
+    ${wEntries.length>0 ? `
+    <div style="margin-top:14px;">
+      ${wEntries.map(e=>`
+        <div class="row between" style="padding:6px 2px;border-bottom:1px solid var(--border);">
+          <span class="mono" style="font-size:12px;color:var(--muted);">${fmtTime(e.t)} · <span style="color:var(--water);">${e.ml} ml</span></span>
+          <button class="btn-danger-icon" data-action="delWater" data-id="${e.id}">${ICO.trash}</button>
+        </div>`).join('')}
+    </div>` : ''}
+  </div>
+
+  <div class="card">
+    <p class="section-title">Notas del día</p>
+    <form id="noteForm">
+      <textarea class="input" id="note_text" rows="3" placeholder="Ej. Hoy me hice un bowl de ensalada con pollo, aguacate y aderezo ligero, más un refresco sin gas y un postre pequeño."></textarea>
+      <button type="submit" class="btn btn-primary disp row gap6" style="align-items:center;margin-top:8px;">${ICO.plus} GUARDAR NOTA</button>
+    </form>
+    <div style="margin-top:12px;">
+      ${notesList.length===0 ? `<p class="empty">Sin notas este día.</p>` : notesList.map(n=>`
+        <div class="entry row between" style="align-items:flex-start;">
+          <div>
+            <p class="mono" style="margin:0 0 4px;font-size:10px;color:var(--muted);">${fmtTime(n.t)}</p>
+            <p style="margin:0;font-size:13px;white-space:pre-wrap;line-height:1.45;">${escapeHtml(n.text)}</p>
+          </div>
+          <button class="btn-danger-icon" data-action="delNote" data-id="${n.id}">${ICO.trash}</button>
+        </div>`).join('')}
+    </div>
+  </div>
+  `;
+}
+
+/* ---------- render: MEDIDAS ---------- */
+function renderMedidas(){
+  const sorted = state.measurements.slice().sort((a,b)=> b.date.localeCompare(a.date));
+  return `
+  <div class="card">
+    <p class="section-title">Nueva medición</p>
+    <form id="measForm">
+      <div class="grid4" style="margin-bottom:10px;">
+        <div><label class="lab">Fecha</label><input class="input" type="date" id="m_date" value="${todayStr()}"></div>
+        ${MFIELDS.map(f=>`<div><label class="lab">${f.label} (${f.unit})</label><input class="input" type="number" step="0.1" inputmode="decimal" id="m_${f.key}"></div>`).join('')}
+      </div>
+      <button type="submit" class="btn btn-primary disp row gap6" style="align-items:center;">${ICO.save} GUARDAR MEDICIÓN</button>
+    </form>
+  </div>
+  ${sorted.length===0 ? `<p class="empty">Aún no hay mediciones. Registra la primera arriba.</p>` : sorted.map((m,idx)=>{
+    const prev = sorted[idx+1];
+    return `
+    <div class="entry">
+      <div class="row between" style="margin-bottom:8px;">
+        <span class="disp" style="font-size:13px;font-weight:600;text-transform:capitalize;">${fmtDate(m.date)}</span>
+        <button class="btn-danger-icon" data-action="delMeas" data-id="${m.id}">${ICO.trash}</button>
+      </div>
+      <div class="row wrap gap14">
+        ${MFIELDS.filter(f=>m[f.key]!==undefined).map(f=>`
+          <div style="min-width:70px;">
+            <p class="mono" style="margin:0;font-size:10px;color:var(--muted);">${f.label}</p>
+            <div class="row gap6" style="align-items:center;">
+              <span class="mono" style="font-size:15px;font-weight:700;">${m[f.key]}${f.unit}</span>
+              ${prev ? deltaHtml(m[f.key], prev[f.key], f.invert) : ''}
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('')}
+  `;
+}
+
+/* ---------- render: PROGRESO ---------- */
+function renderProgreso(){
+  const data = state.measurements.slice().sort((a,b)=>a.date.localeCompare(b.date)).slice(-30);
+  const waterDates = Object.keys(state.waterLog).sort().slice(-30);
+  const waterData = waterDates.map(d=>({date:d, total: waterTotal(d)}));
+
+  if(data.length===0 && waterData.length===0){
+    return `<p class="empty">Registra mediciones o agua para ver tu progreso aquí.</p>`;
+  }
+
+  return `
+  <div class="card">
+    <p class="section-title">Peso (kg)</p>
+    ${lineChart(data,'weight','var(--energy)','kg')}
+  </div>
+  <div class="card">
+    <p class="section-title">Cintura (cm)</p>
+    ${lineChart(data,'waist','var(--protein)','cm')}
+  </div>
+  <div class="card">
+    <p class="section-title">Cadera (cm)</p>
+    ${lineChart(data,'hip','var(--carbs)','cm')}
+  </div>
+  <div class="card">
+    <p class="section-title">Agua diaria (ml)</p>
+    ${lineChart(waterData,'total','var(--water)','ml')}
+  </div>
+  `;
+}
+
+/* ---------- render: AJUSTES ---------- */
+function renderAjustes(){
+  const p = state.profile;
+  return `
+  <div class="card">
+    <p class="section-title">Metas diarias</p>
+    <form id="goalsForm">
+      <div class="grid2" style="margin-bottom:12px;">
+        <div><label class="lab">Calorías (kcal)</label><input class="input" type="number" id="g_cal" value="${p.calGoal}"></div>
+        <div><label class="lab" style="color:var(--protein);">Proteína (g)</label><input class="input" type="number" id="g_protein" value="${p.proteinGoal}"></div>
+        <div><label class="lab" style="color:var(--carbs);">Carbohidratos (g)</label><input class="input" type="number" id="g_carb" value="${p.carbGoal}"></div>
+        <div><label class="lab" style="color:var(--fat);">Grasas (g)</label><input class="input" type="number" id="g_fat" value="${p.fatGoal}"></div>
+        <div><label class="lab" style="color:var(--water);">Agua (ml)</label><input class="input" type="number" id="g_water" value="${p.waterGoal}"></div>
+      </div>
+      <button type="submit" class="btn btn-primary disp row gap6" style="align-items:center;">${ICO.save} GUARDAR METAS</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <p class="section-title">Calculadora rápida (opcional)</p>
+    <div class="grid3" style="margin-bottom:10px;">
+      <div><label class="lab">Peso (kg)</label><input class="input" type="number" id="c_weight"></div>
+      <div><label class="lab">Altura (cm)</label><input class="input" type="number" id="c_height"></div>
+      <div><label class="lab">Edad</label><input class="input" type="number" id="c_age"></div>
+      <div><label class="lab">Sexo</label>
+        <select class="input" id="c_sex"><option value="m">Hombre</option><option value="f">Mujer</option></select>
+      </div>
+      <div><label class="lab">Actividad</label>
+        <select class="input" id="c_activity">
+          <option value="1.2">Sedentario</option>
+          <option value="1.375" selected>Ligera</option>
+          <option value="1.55">Moderada</option>
+          <option value="1.725">Alta</option>
+          <option value="1.9">Muy alta</option>
+        </select>
+      </div>
+      <div><label class="lab">Objetivo</label>
+        <select class="input" id="c_goal">
+          <option value="deficit">Bajar grasa</option>
+          <option value="mantenimiento">Mantener</option>
+          <option value="superavit">Ganar músculo</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn btn-outline" data-action="applyCalc">Calcular y aplicar a metas</button>
+    <p class="mono" style="font-size:10px;color:var(--muted);margin-top:10px;">
+      Estimación con la fórmula Mifflin-St Jeor y agua sugerida (35 ml/kg). Es un punto de partida; ajusta según tus resultados cada 1-2 semanas.
+    </p>
+  </div>
+
+  <div class="card" style="border-color:var(--danger);">
+    <p class="section-title">Zona de datos</p>
+    <p class="mono" style="font-size:11px;color:var(--muted);margin-bottom:10px;">Tus datos se guardan solo en este navegador/dispositivo (localStorage). Borrar datos del navegador los eliminará.</p>
+    <button class="btn btn-outline" style="border-color:var(--danger);color:var(--danger);" data-action="resetAll">Borrar todos mis datos</button>
+  </div>
+  `;
+}
+
+/* ---------- misc ---------- */
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function handlePhotoFile(file){
+  if(!file || !file.type.startsWith('image/')) return;
+  const reader = new FileReader();
+  reader.onload = (ev)=>{
+    const img = new Image();
+    img.onload = ()=>{
+      const maxDim = 360;
+      let w = img.width, h = img.height;
+      if(w>h && w>maxDim){ h = Math.round(h*maxDim/w); w = maxDim; }
+      else if(h>=w && h>maxDim){ w = Math.round(w*maxDim/h); h = maxDim; }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+      state.photo = dataUrl;
+      save('vc_photo', dataUrl);
+      renderApp();
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ---------- body map (silhouette with callout lines) ---------- */
+function latestMeasure(field){
+  const list = state.measurements.filter(m=>m[field]!==undefined && m[field]!==null).sort((a,b)=>b.date.localeCompare(a.date));
+  return list.length ? list[0][field] : null;
+}
+function bodyMapSvg(){
+  const val = (v) => v!==null && v!==undefined ? `${v}cm` : '— sin datos';
+  const callouts = [
+    {name:'Cuello',   mx:150, my:80,  lx:275, ly:50,  align:'end',   color:'var(--accent)',  v: val(latestMeasure('neck'))},
+    {name:'Pecho',    mx:128, my:112, lx:25,  ly:90,  align:'start', color:'var(--fat)',     v: val(latestMeasure('chest'))},
+    {name:'Cintura',  mx:172, my:172, lx:275, ly:150, align:'end',   color:'var(--protein)', v: val(latestMeasure('waist'))},
+    {name:'Cadera',   mx:122, my:208, lx:25,  ly:195, align:'start', color:'var(--energy)',  v: val(latestMeasure('hip')), highlight:true},
+    {name:'Brazo',    mx:233, my:140, lx:275, ly:250, align:'end',   color:'var(--carbs)',   v: val(latestMeasure('arm'))},
+    {name:'Muslo',    mx:133, my:290, lx:25,  ly:300, align:'start', color:'var(--water)',   v: val(latestMeasure('thigh'))},
+  ];
+  const guides = callouts.map(c=>`
+    <line x1="${c.mx}" y1="${c.my}" x2="${c.lx}" y2="${c.ly}" stroke="${c.color}" stroke-width="${c.highlight?2.6:1.3}" stroke-dasharray="${c.highlight?'0':'3,3'}" opacity="${c.highlight?1:0.75}"/>
+    <circle cx="${c.mx}" cy="${c.my}" r="${c.highlight?5.5:3.5}" fill="${c.color}"/>
+  `).join('');
+  const texts = callouts.map(c=>`
+    <text x="${c.lx}" y="${c.ly-7}" text-anchor="${c.align}" fill="${c.color}" font-size="11" font-family="Rajdhani, sans-serif" font-weight="700" letter-spacing="0.5">${c.name.toUpperCase()}</text>
+    <text x="${c.lx}" y="${c.ly+9}" text-anchor="${c.align}" fill="var(--text)" font-size="13" font-family="JetBrains Mono, monospace" font-weight="700">${c.v}</text>
+  `).join('');
+  return `
+  <svg viewBox="0 0 300 420" style="width:100%;max-width:400px;display:block;margin:0 auto;overflow:visible;">
+    <circle cx="150" cy="42" r="26" fill="var(--surface2)" stroke="var(--border)" stroke-width="1.5"/>
+    <rect x="140" y="66" width="20" height="18" fill="var(--surface2)" stroke="var(--border)" stroke-width="1.5"/>
+    <polygon points="118,84 182,84 172,190 128,190" fill="var(--surface2)" stroke="var(--border)" stroke-width="1.5"/>
+    <polygon points="126,188 174,188 182,225 118,225" fill="var(--surface2)" stroke="var(--border)" stroke-width="1.5"/>
+    <rect x="60" y="90" width="20" height="115" rx="10" fill="var(--surface2)" stroke="var(--border)" stroke-width="1.5" transform="rotate(8 70 90)"/>
+    <rect x="220" y="90" width="20" height="115" rx="10" fill="var(--surface2)" stroke="var(--border)" stroke-width="1.5" transform="rotate(-8 230 90)"/>
+    <rect x="120" y="225" width="26" height="150" rx="13" fill="var(--surface2)" stroke="var(--border)" stroke-width="1.5"/>
+    <rect x="154" y="225" width="26" height="150" rx="13" fill="var(--surface2)" stroke="var(--border)" stroke-width="1.5"/>
+    ${guides}
+    ${texts}
+  </svg>`;
+}
+
+/* ---------- render: PERFIL ---------- */
+function renderPerfil(){
+  const p = state.profile;
+  const photo = state.photo;
+  const latestW = latestMeasure('weight');
+  return `
+  <div class="card">
+    <p class="section-title">Foto de perfil</p>
+    <div class="row gap16" style="align-items:center;">
+      <div style="width:90px;height:90px;border-radius:50%;overflow:hidden;background:var(--surface2);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        ${photo ? `<img src="${photo}" style="width:100%;height:100%;object-fit:cover;" alt="Foto de perfil">` : `<span class="mono" style="font-size:9px;color:var(--muted);text-align:center;">SIN<br>FOTO</span>`}
+      </div>
+      <div class="col gap8">
+        <label class="btn btn-outline mono" style="font-size:12px;text-align:center;cursor:pointer;">
+          Subir foto
+          <input type="file" id="photoInput" accept="image/*" style="display:none;">
+        </label>
+        ${photo ? `<button type="button" class="btn btn-outline mono" style="font-size:12px;border-color:var(--danger);color:var(--danger);" data-action="removePhoto">Quitar foto</button>` : ''}
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="section-title">Datos personales</p>
+    <form id="profileForm">
+      <div class="grid2">
+        <div><label class="lab">Nombre</label><input class="input" id="pf_name" value="${p.name?escapeHtml(p.name):''}" placeholder="Tu nombre"></div>
+        <div><label class="lab">Altura (cm)</label><input class="input" type="number" id="pf_height" value="${p.height||''}"></div>
+      </div>
+      <button type="submit" class="btn btn-primary disp row gap6" style="align-items:center;margin-top:10px;">${ICO.save} GUARDAR DATOS</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <p class="section-title">Resumen actual</p>
+    <div class="grid3">
+      <div><p class="lab">Peso</p><p class="mono" style="margin:0;font-size:18px;font-weight:700;">${latestW!==null?latestW+' kg':'—'}</p></div>
+      <div><p class="lab">Calorías / día</p><p class="mono" style="margin:0;font-size:18px;font-weight:700;color:var(--energy);">${p.calGoal}</p></div>
+      <div><p class="lab">Agua / día</p><p class="mono" style="margin:0;font-size:18px;font-weight:700;color:var(--water);">${p.waterGoal}ml</p></div>
+      <div><p class="lab">Proteína</p><p class="mono" style="margin:0;font-size:16px;font-weight:700;color:var(--protein);">${p.proteinGoal}g</p></div>
+      <div><p class="lab">Carbos</p><p class="mono" style="margin:0;font-size:16px;font-weight:700;color:var(--carbs);">${p.carbGoal}g</p></div>
+      <div><p class="lab">Grasas</p><p class="mono" style="margin:0;font-size:16px;font-weight:700;color:var(--fat);">${p.fatGoal}g</p></div>
+    </div>
+    <p class="mono" style="font-size:10px;color:var(--muted);margin-top:10px;">Ajusta tus metas de calorías, macros y agua en la pestaña AJUSTES.</p>
+  </div>
+
+  <div class="card">
+    <p class="section-title">Mapa corporal</p>
+    ${bodyMapSvg()}
+    <p class="mono" style="font-size:10px;color:var(--muted);margin-top:6px;text-align:center;">
+      Se actualiza con tu medición más reciente de cada zona (pestaña MEDIDAS).
+    </p>
+  </div>
+  `;
+}
+
+/* ---------- main render ---------- */
+const TABS = [
+  {id:'hoy', label:'HOY'},
+  {id:'perfil', label:'PERFIL'},
+  {id:'medidas', label:'MEDIDAS'},
+  {id:'progreso', label:'PROGRESO'},
+  {id:'ajustes', label:'AJUSTES'},
+];
+function renderApp(){
+  const body = state.tab==='hoy' ? renderHoy()
+    : state.tab==='perfil' ? renderPerfil()
+    : state.tab==='medidas' ? renderMedidas()
+    : state.tab==='progreso' ? renderProgreso()
+    : renderAjustes();
+
+  document.getElementById('app').innerHTML = `
+    ${!STORAGE_OK ? `
+    <div class="mono" style="background:#3A1620;border:1px solid var(--danger);color:#FFD7DE;border-radius:10px;padding:12px 14px;margin-bottom:18px;font-size:12px;line-height:1.6;">
+      ⚠ <strong>El guardado permanente no está disponible ahora mismo.</strong> Tus datos se mantienen mientras esta pestaña siga abierta, pero se perderán al cerrarla o recargarla. Esto pasa si: (1) estás viendo la app dentro de la vista previa del chat de Claude — descarga el archivo y ábrelo aparte —, o (2) la abriste como archivo local en Chrome para Android, que bloquea el guardado ahí. Prueba abrir el archivo con Firefox, o súbelo a un hosting gratuito (te puedo ayudar con eso).
+    </div>` : ''}
+    <div class="row between" style="margin-bottom:22px;">
+      <div>
+        <h1 class="disp" style="font-size:26px;font-weight:700;margin:0;">VITAL<span style="color:var(--energy);">CORE</span></h1>
+        <p class="mono" style="font-size:11px;color:var(--muted);margin:2px 0 0;">PANEL DE PROGRESO — CUERPO &amp; NUTRICIÓN</p>
+      </div>
+      <div class="dot-live"></div>
+    </div>
+    <div class="tabbar">
+      ${TABS.map(t=>`<button class="tab ${state.tab===t.id?'active':''} disp" data-action="setTab" data-tab="${t.id}">${t.label}</button>`).join('')}
+    </div>
+    ${body}
+  `;
+  attachFormHandlers();
+}
+
+function renderPkgCalc(){
+  return `
+  <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-top:10px;">
+    <p class="mono" style="font-size:11px;color:var(--muted);margin:0 0 10px;">
+      Captura los totales que dice la etiqueta del paquete completo y cuánto comiste tú — te calculamos tu porción real.
+    </p>
+    <div class="grid2" style="margin-bottom:8px;">
+      <div><label class="lab">Peso total del paquete (g)</label><input class="input" id="pk_total" type="number" inputmode="numeric" placeholder="Ej. 400"></div>
+      <div><label class="lab">Cantidad que comiste (g)</label><input class="input" id="pk_eaten" type="number" inputmode="numeric" placeholder="Ej. 247"></div>
+      <div><label class="lab">kcal totales del paquete</label><input class="input" id="pk_cal" type="number" inputmode="numeric"></div>
+      <div><label class="lab">Proteína total (g)</label><input class="input" id="pk_protein" type="number" inputmode="numeric"></div>
+      <div><label class="lab">Carbos totales (g)</label><input class="input" id="pk_carb" type="number" inputmode="numeric"></div>
+      <div><label class="lab">Grasas totales (g)</label><input class="input" id="pk_fat" type="number" inputmode="numeric"></div>
+    </div>
+    <button type="button" class="btn btn-primary mono" style="font-size:12px;padding:8px 12px;" data-action="applyPkgCalc">Calcular y usar en el registro</button>
+    <div id="pk_result" style="margin-top:8px;"></div>
+  </div>`;
+}
+
+function updateFoodAssist(){
+  const nameInput = document.getElementById('f_name');
+  const suggestEl = document.getElementById('f_suggest');
+  const hintEl = document.getElementById('f_hint');
+  if(!nameInput) return;
+  const raw = nameInput.value;
+
+  if(!raw.trim()){
+    suggestEl.innerHTML = '';
+    hintEl.innerHTML = '';
+    return;
+  }
+
+  const {name, qty, unitToken} = parseFoodQuery(raw);
+  const food = findFood(name || raw);
+
+  if(food){
+    const {grams, label} = resolveGrams(food, qty, unitToken);
+    const factor = grams/100;
+    document.getElementById('f_cal').value = Math.round(food.kcal*factor);
+    document.getElementById('f_protein').value = +(food.protein*factor).toFixed(1);
+    document.getElementById('f_carb').value = +(food.carb*factor).toFixed(1);
+    document.getElementById('f_fat').value = +(food.fat*factor).toFixed(1);
+    hintEl.innerHTML = `<span class="hint-ok">✓ ${food.name} · ${label} → macros calculados (puedes editarlos)</span>`;
+  } else {
+    hintEl.innerHTML = `<span class="hint-none">No está en la base de datos — captura los macros manualmente</span>`;
+  }
+
+  const suggestions = getSuggestions(raw);
+  if(suggestions.length && !food){
+    suggestEl.innerHTML = `<div class="suggest-box">${suggestions.map(s=>`
+      <div class="suggest-item" data-action="pickFood" data-idx="${s.i}">
+        <span>${s.f.name}</span>
+        <span class="mono muted">${s.f.kcal} kcal/100g</span>
+      </div>`).join('')}</div>`;
+  } else {
+    suggestEl.innerHTML = '';
+  }
+}
+
+function attachFormHandlers(){
+  const foodForm = document.getElementById('foodForm');
+  if(foodForm){
+    const nameInput = document.getElementById('f_name');
+    if(nameInput){
+      nameInput.addEventListener('input', updateFoodAssist);
+      nameInput.addEventListener('blur', ()=>{ setTimeout(()=>{ const s=document.getElementById('f_suggest'); if(s) s.innerHTML=''; }, 150); });
+    }
+    foodForm.addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const name = document.getElementById('f_name').value.trim();
+      const cal = document.getElementById('f_cal').value;
+      if(!name || !cal) return;
+      const entry = {
+        id: uid(), name,
+        cal: Number(cal)||0,
+        protein: Number(document.getElementById('f_protein').value)||0,
+        carb: Number(document.getElementById('f_carb').value)||0,
+        fat: Number(document.getElementById('f_fat').value)||0,
+      };
+      const list = state.foodLog[state.selDate] ? state.foodLog[state.selDate].slice() : [];
+      list.push(entry);
+      state.foodLog[state.selDate] = list;
+      saveFoodLog();
+      renderApp();
+    });
+  }
+  const measForm = document.getElementById('measForm');
+  if(measForm){
+    measForm.addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const date = document.getElementById('m_date').value || todayStr();
+      const payload = {id: uid(), date};
+      let any = false;
+      MFIELDS.forEach(f=>{
+        const v = document.getElementById('m_'+f.key).value;
+        if(v!==''){ payload[f.key] = Number(v); any = true; }
+      });
+      if(!any) return;
+      state.measurements.push(payload);
+      state.measurements.sort((a,b)=>a.date.localeCompare(b.date));
+      saveMeasurements();
+      renderApp();
+    });
+  }
+  const noteForm = document.getElementById('noteForm');
+  if(noteForm){
+    noteForm.addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const textEl = document.getElementById('note_text');
+      const text = textEl.value.trim();
+      if(!text) return;
+      const list = state.notes[state.selDate] ? state.notes[state.selDate].slice() : [];
+      list.push({id: uid(), text, t: Date.now()});
+      state.notes[state.selDate] = list;
+      saveNotes();
+      renderApp();
+    });
+  }
+  const goalsForm = document.getElementById('goalsForm');
+  if(goalsForm){
+    goalsForm.addEventListener('submit', (e)=>{
+      e.preventDefault();
+      state.profile = {
+        ...state.profile,
+        calGoal: Number(document.getElementById('g_cal').value)||0,
+        proteinGoal: Number(document.getElementById('g_protein').value)||0,
+        carbGoal: Number(document.getElementById('g_carb').value)||0,
+        fatGoal: Number(document.getElementById('g_fat').value)||0,
+        waterGoal: Number(document.getElementById('g_water').value)||0,
+      };
+      saveProfile();
+      renderApp();
+    });
+  }
+  const profileForm = document.getElementById('profileForm');
+  if(profileForm){
+    profileForm.addEventListener('submit', (e)=>{
+      e.preventDefault();
+      state.profile = {
+        ...state.profile,
+        name: document.getElementById('pf_name').value.trim(),
+        height: Number(document.getElementById('pf_height').value) || null,
+      };
+      saveProfile();
+      renderApp();
+    });
+  }
+  const photoInput = document.getElementById('photoInput');
+  if(photoInput){
+    photoInput.addEventListener('change', (e)=>{
+      const file = e.target.files[0];
+      if(file) handlePhotoFile(file);
+    });
+  }
+}
+
+/* ---------- delegated click actions ---------- */
+document.addEventListener('click', (e)=>{
+  const btn = e.target.closest('[data-action]');
+  if(!btn) return;
+  const action = btn.dataset.action;
+
+  if(action==='setTab'){ state.tab = btn.dataset.tab; renderApp(); }
+  else if(action==='prevDay'){ state.selDate = addDays(state.selDate,-1); renderApp(); }
+  else if(action==='nextDay'){ state.selDate = addDays(state.selDate,1); renderApp(); }
+  else if(action==='goToday'){ state.selDate = todayStr(); renderApp(); }
+  else if(action==='delFood'){
+    const id = btn.dataset.id;
+    state.foodLog[state.selDate] = (state.foodLog[state.selDate]||[]).filter(x=>x.id!==id);
+    saveFoodLog(); renderApp();
+  }
+  else if(action==='delMeas'){
+    const id = btn.dataset.id;
+    state.measurements = state.measurements.filter(x=>x.id!==id);
+    saveMeasurements(); renderApp();
+  }
+  else if(action==='delWater'){
+    const id = btn.dataset.id;
+    state.waterLog[state.selDate] = (state.waterLog[state.selDate]||[]).filter(x=>x.id!==id);
+    saveWaterLog(); renderApp();
+  }
+  else if(action==='delNote'){
+    const id = btn.dataset.id;
+    state.notes[state.selDate] = (state.notes[state.selDate]||[]).filter(x=>x.id!==id);
+    saveNotes(); renderApp();
+  }
+  else if(action==='pickFood'){
+    const idx = Number(btn.dataset.idx);
+    const food = FOOD_DB[idx];
+    if(!food) return;
+    const nameInput = document.getElementById('f_name');
+    const {qty, unitToken} = parseFoodQuery(nameInput.value);
+    const isGramUnit = unitToken && /^(g|gr|gramos)$/i.test(unitToken);
+    let suffix;
+    if(qty==null) suffix = food.unitGrams ? '1 pieza' : '100g';
+    else if(isGramUnit || !food.unitGrams) suffix = `${qty}g`;
+    else suffix = `${qty} piezas`;
+    nameInput.value = `${food.name} ${suffix}`;
+    updateFoodAssist();
+    document.getElementById('f_suggest').innerHTML = '';
+    nameInput.focus();
+  }
+  else if(action==='togglePkgCalc'){
+    pkgCalcOpen = !pkgCalcOpen;
+    renderApp();
+  }
+  else if(action==='applyPkgCalc'){
+    const total = Number(document.getElementById('pk_total').value);
+    const eaten = Number(document.getElementById('pk_eaten').value);
+    const cal = Number(document.getElementById('pk_cal').value)||0;
+    const protein = Number(document.getElementById('pk_protein').value)||0;
+    const carb = Number(document.getElementById('pk_carb').value)||0;
+    const fat = Number(document.getElementById('pk_fat').value)||0;
+    const resultEl = document.getElementById('pk_result');
+    if(!total || total<=0){
+      resultEl.innerHTML = `<span class="hint-none">Captura el peso total del paquete.</span>`;
+      return;
+    }
+    if(!eaten || eaten<=0){
+      resultEl.innerHTML = `<span class="hint-none">Captura cuánto comiste.</span>`;
+      return;
+    }
+    const factor = eaten/total;
+    const rCal = Math.round(cal*factor);
+    const rProtein = +(protein*factor).toFixed(1);
+    const rCarb = +(carb*factor).toFixed(1);
+    const rFat = +(fat*factor).toFixed(1);
+    document.getElementById('f_cal').value = rCal;
+    document.getElementById('f_protein').value = rProtein;
+    document.getElementById('f_carb').value = rCarb;
+    document.getElementById('f_fat').value = rFat;
+    const nameInput = document.getElementById('f_name');
+    if(!nameInput.value.trim()) nameInput.value = `Porción de paquete ${eaten}g`;
+    document.getElementById('f_hint').innerHTML = `<span class="hint-ok">✓ Calculado desde el paquete</span>`;
+    resultEl.innerHTML = `<span class="mono" style="color:var(--energy);font-size:11px;">
+      Comiste ${eaten}g de ${total}g (${(factor*100).toFixed(1)}%) → ${rCal} kcal · P ${rProtein}g · C ${rCarb}g · G ${rFat}g — ya se llenó el formulario de arriba.
+    </span>`;
+  }
+  else if(action==='waterPlus'){
+    const ml = Number(btn.dataset.ml);
+    const list = state.waterLog[state.selDate] ? state.waterLog[state.selDate].slice() : [];
+    list.push({id:uid(), ml, t:Date.now()});
+    state.waterLog[state.selDate] = list;
+    saveWaterLog(); renderApp();
+  }
+  else if(action==='waterMinus'){
+    const ml = Number(btn.dataset.ml);
+    const list = (state.waterLog[state.selDate]||[]).slice();
+    for(let i=list.length-1;i>=0;i--){
+      if(list[i].ml===ml){ list.splice(i,1); break; }
+    }
+    state.waterLog[state.selDate] = list;
+    saveWaterLog(); renderApp();
+  }
+  else if(action==='waterCustom'){
+    const input = document.getElementById('w_custom');
+    const ml = Number(input.value);
+    if(!ml || ml<=0) return;
+    const list = state.waterLog[state.selDate] ? state.waterLog[state.selDate].slice() : [];
+    list.push({id:uid(), ml, t:Date.now()});
+    state.waterLog[state.selDate] = list;
+    saveWaterLog(); renderApp();
+  }
+  else if(action==='applyCalc'){
+    const w = Number(document.getElementById('c_weight').value);
+    const h = Number(document.getElementById('c_height').value);
+    const a = Number(document.getElementById('c_age').value);
+    const sex = document.getElementById('c_sex').value;
+    const activity = Number(document.getElementById('c_activity').value);
+    const goal = document.getElementById('c_goal').value;
+    if(!w || !h || !a) return;
+    let bmr = sex==='m' ? (10*w + 6.25*h - 5*a + 5) : (10*w + 6.25*h - 5*a - 161);
+    let tdee = bmr*activity;
+    if(goal==='deficit') tdee -= 500;
+    if(goal==='superavit') tdee += 300;
+    const protein = Math.round(w*1.8);
+    const fat = Math.round((tdee*0.25)/9);
+    const carb = Math.max(Math.round((tdee - protein*4 - fat*9)/4), 0);
+    const water = Math.round(w*35);
+    state.profile = {...state.profile, calGoal:Math.round(tdee), proteinGoal:protein, carbGoal:carb, fatGoal:fat, waterGoal:water};
+    saveProfile();
+    renderApp();
+  }
+  else if(action==='resetAll'){
+    if(confirm('¿Seguro que quieres borrar TODOS tus datos (comida, agua, medidas, notas, foto y metas)? Esta acción no se puede deshacer.')){
+      localStorage.removeItem('vc_profile');
+      localStorage.removeItem('vc_foodlog');
+      localStorage.removeItem('vc_waterlog');
+      localStorage.removeItem('vc_measurements');
+      localStorage.removeItem('vc_notes');
+      localStorage.removeItem('vc_photo');
+      state.profile = {calGoal:2000, proteinGoal:150, carbGoal:210, fatGoal:60, waterGoal:2000, name:'', height:null};
+      state.foodLog = {}; state.waterLog = {}; state.measurements = []; state.notes = {}; state.photo = null;
+      renderApp();
+    }
+  }
+  else if(action==='removePhoto'){
+    state.photo = null;
+    localStorage.removeItem('vc_photo');
+    renderApp();
+  }
+});
+
+renderApp();
+</script>
+</body>
+</html>
