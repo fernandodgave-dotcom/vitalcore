@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="VitalCore">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiI+PHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSI5NiIgZmlsbD0iIzExMTQxQSIvPjxyZWN0IHg9IjE4IiB5PSIxOCIgd2lkdGg9IjQ3NiIgaGVpZ2h0PSI0NzYiIHJ4PSI4MiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMkMzNDQ0IiBzdHJva2Utd2lkdGg9IjYiLz48cGF0aCBkPSJNIDM3MiAxMTggQSAxODYgMTg2IDAgMCAxIDQzOCAzMjIiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzhGRTA1QyIgc3Ryb2tlLXdpZHRoPSIxNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PGNpcmNsZSBjeD0iMjU2IiBjeT0iMTEyIiByPSIxNiIgZmlsbD0iIzhGRTA1QyIvPjxwb2x5Z29uIHBvaW50cz0iMTUwLDE1MCAyMTQsMTUwIDI4NiwzNDIgMjU2LDQxMCAyMjYsMzQyIiBmaWxsPSIjOEZFMDVDIi8+PHBvbHlnb24gcG9pbnRzPSIzNjIsMTUwIDI5OCwxNTAgMjI2LDM0MiAyNTYsNDEwIDI4NiwzNDIiIGZpbGw9IiM4RkUwNUMiLz48L3N2Zz4K">
-<link rel="apple-touch-icon" href="vitalcore-icon-180.png">
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
 <title>VitalCore — Cuerpo &amp; Nutrición</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap');
@@ -302,12 +302,14 @@ const state = {
   measurements: load('vc_measurements', []),
   notes: load('vc_notes', {}),
   photo: load('vc_photo', null),
+  exerciseLog: load('vc_exercise', {}),
 };
 const saveProfile = () => save('vc_profile', state.profile);
 const saveFoodLog = () => save('vc_foodlog', state.foodLog);
 const saveWaterLog = () => save('vc_waterlog', state.waterLog);
 const saveMeasurements = () => save('vc_measurements', state.measurements);
 const saveNotes = () => save('vc_notes', state.notes);
+const saveExercise = () => save('vc_exercise', state.exerciseLog);
 let pkgCalcOpen = false;
 
 /* ---------- icons (inline svg) ---------- */
@@ -769,8 +771,150 @@ function renderPerfil(){
 }
 
 /* ---------- main render ---------- */
+/* ---------- COMER: platillos y comidas segun meta ---------- */
+const MEAL_IDEAS = {
+  desayuno: [
+    {n:'Huevos revueltos con nopales y frijoles', kcal:320, p:'22g'},
+    {n:'Avena con plátano y canela', kcal:290, p:'9g'},
+    {n:'Yogur natural con fresas y avena', kcal:250, p:'14g'},
+    {n:'Molletes de frijol con queso panela', kcal:340, p:'18g'},
+    {n:'Licuado de leche, avena y fruta', kcal:300, p:'16g'},
+  ],
+  comida: [
+    {n:'Pechuga de pollo a la plancha con arroz y ensalada', kcal:480, p:'42g'},
+    {n:'Tinga de pollo con tortillas y frijoles', kcal:520, p:'38g'},
+    {n:'Pescado al mojo de ajo con verduras', kcal:410, p:'40g'},
+    {n:'Bistec de res con nopales asados', kcal:450, p:'44g'},
+    {n:'Sopa de lentejas con verduras y tortilla', kcal:380, p:'22g'},
+    {n:'Fajitas de pollo con pimientos', kcal:440, p:'40g'},
+  ],
+  cena: [
+    {n:'Ensalada grande con atún', kcal:300, p:'30g'},
+    {n:'Quesadillas de panela en tortilla de maíz', kcal:330, p:'20g'},
+    {n:'Caldo de pollo con verduras', kcal:280, p:'26g'},
+    {n:'Huevo cocido con aguacate y tostada', kcal:290, p:'16g'},
+    {n:'Requesón con verduras y galletas integrales', kcal:260, p:'22g'},
+  ],
+  snack: [
+    {n:'Manzana con crema de cacahuate', kcal:200, p:'6g'},
+    {n:'Puñado de almendras', kcal:170, p:'6g'},
+    {n:'Zanahorias con hummus', kcal:150, p:'5g'},
+    {n:'Yogur griego', kcal:120, p:'12g'},
+  ],
+};
+function pickN(arr, n, seed){
+  const out=[]; const used={};
+  for(let i=0;i<n && i<arr.length;i++){
+    let idx=(seed+i*7)%arr.length;
+    while(used[idx]) idx=(idx+1)%arr.length;
+    used[idx]=1; out.push(arr[idx]);
+  }
+  return out;
+}
+function renderComer(){
+  const p=state.profile;
+  const goal=p.calGoal||2000;
+  const dist=[
+    {label:'Desayuno', pct:0.28, key:'desayuno'},
+    {label:'Comida', pct:0.38, key:'comida'},
+    {label:'Cena', pct:0.24, key:'cena'},
+    {label:'Snack', pct:0.10, key:'snack'},
+  ];
+  const seed = parseInt(state.selDate.replace(/-/g,''),10)%97;
+  const cards = dist.map(function(d){
+    const target=Math.round(goal*d.pct);
+    const ideas=pickN(MEAL_IDEAS[d.key], 3, seed);
+    return `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;">
+      <div class="row between" style="margin-bottom:10px;">
+        <span class="disp" style="font-size:15px;font-weight:600;color:var(--energy);">${d.label}</span>
+        <span class="mono" style="font-size:12px;color:var(--muted);">~${target} kcal objetivo</span>
+      </div>
+      ${ideas.map(function(it){return `
+        <div class="row between" style="padding:7px 0;border-bottom:1px solid var(--border);">
+          <span style="font-size:13px;flex:1;">${it.n}</span>
+          <span class="mono" style="font-size:11px;color:var(--muted);white-space:nowrap;margin-left:8px;">${it.kcal} kcal · P ${it.p}</span>
+        </div>`;}).join('')}
+    </div>`;
+  }).join('');
+  const mealsPerDay = goal<1600?3:(goal<2200?4:5);
+  return `
+  <div class="card" style="background:linear-gradient(135deg,var(--surface),var(--surface2));">
+    <p class="section-title" style="margin-bottom:6px;">TU PLAN DE HOY</p>
+    <p style="margin:0 0 10px;font-size:14px;">Meta diaria: <strong style="color:var(--energy);">${goal} kcal</strong> · Objetivo: bajar de peso</p>
+    <p class="mono" style="font-size:12px;color:var(--muted);line-height:1.6;margin:0;">
+      Recomendado: <strong style="color:var(--text);">${mealsPerDay} comidas</strong> al día repartidas como abajo. Comer en porciones controladas ayuda a no llegar con hambre extrema y facilita el déficit.
+    </p>
+  </div>
+  ${cards}
+  <p class="mono" style="font-size:10px;color:var(--muted);text-align:center;margin-top:4px;line-height:1.6;">
+    Son ideas equilibradas, no una prescripción. Ajusta porciones a tu apetito y varía los alimentos.<br>Para un plan personalizado, consulta a un nutriólogo.
+  </p>`;
+}
+
+/* ---------- EJERCICIO: calculadora de calorias (METs) ---------- */
+const ACTIVITIES = [
+  {n:'Caminar (ritmo normal)', met:3.5},
+  {n:'Caminar rápido', met:5.0},
+  {n:'Correr / trotar', met:9.8},
+  {n:'Bicicleta (moderado)', met:7.5},
+  {n:'Nadar', met:8.0},
+  {n:'Fútbol', met:7.0},
+  {n:'Básquetbol', met:6.5},
+  {n:'Pesas / gym', met:5.0},
+  {n:'Saltar la cuerda', met:11.0},
+  {n:'Baile', met:5.5},
+  {n:'Yoga / estiramiento', met:2.8},
+  {n:'Subir escaleras', met:8.8},
+  {n:'Videojuegos activos', met:3.5},
+];
+function exerciseKcal(met, weightKg, minutes){ return Math.round(met * weightKg * (minutes/60)); }
+function todayExercise(){ return state.exerciseLog[state.selDate]||[]; }
+function todayExerciseTotal(){ return todayExercise().reduce((s,e)=>s+Number(e.kcal||0),0); }
+
+function renderEjercicio(){
+  const w=latestMeasure('weight') || 70;
+  const total=todayExerciseTotal();
+  const list=todayExercise();
+  const opts=ACTIVITIES.map(function(a,i){return `<option value="${i}">${a.n}</option>`;}).join('');
+  const inputStyle="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 10px;color:var(--text);font-size:14px;width:100%;outline:none;";
+  return `
+  <div class="card" style="text-align:center;">
+    <p class="section-title" style="margin-bottom:8px;">CALORÍAS QUEMADAS HOY</p>
+    <div class="mono" style="font-size:34px;font-weight:700;color:var(--energy);">${total}</div>
+    <p class="mono" style="font-size:11px;color:var(--muted);margin:4px 0 0;">estimadas · usando tu peso de ${w} kg</p>
+  </div>
+  <div class="card">
+    <p class="section-title">REGISTRAR ACTIVIDAD</p>
+    <div style="margin-bottom:8px;"><label class="mono" style="font-size:10px;color:var(--muted);">Actividad</label>
+      <select id="ex_act" style="${inputStyle}">${opts}</select></div>
+    <div class="row" style="gap:8px;margin-bottom:10px;">
+      <div style="flex:1;"><label class="mono" style="font-size:10px;color:var(--muted);">Minutos</label>
+        <input id="ex_min" type="number" inputmode="numeric" placeholder="30" style="${inputStyle}"></div>
+      <div style="flex:1;"><label class="mono" style="font-size:10px;color:var(--muted);">Tu peso (kg)</label>
+        <input id="ex_weight" type="number" inputmode="decimal" value="${w}" style="${inputStyle}"></div>
+    </div>
+    <button class="btn btn-primary disp" data-action="addExercise" style="width:100%;">AGREGAR</button>
+    <p class="mono" style="font-size:10px;color:var(--muted);margin-top:8px;line-height:1.5;">Las calorías quemadas son una estimación aproximada (fórmula MET). Varían según tu esfuerzo real y metabolismo.</p>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:8px;">
+    ${list.length===0 ? `<p class="mono" style="color:var(--muted);font-size:12px;text-align:center;padding:16px 0;">Sin actividades registradas hoy.</p>`
+      : list.slice().reverse().map(function(e){return `
+      <div class="row between" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 14px;">
+        <div><p style="margin:0;font-size:14px;">${escapeHtml(e.name)}</p>
+        <p class="mono" style="margin:2px 0 0;font-size:11px;color:var(--muted);">${e.min} min</p></div>
+        <div class="row" style="gap:10px;align-items:center;">
+          <span class="mono" style="font-size:14px;font-weight:700;color:var(--energy);">${e.kcal} kcal</span>
+          <button class="btn" style="background:transparent;color:var(--danger);padding:4px;" data-action="delExercise" data-id="${e.id}">✕</button>
+        </div>
+      </div>`;}).join('')}
+  </div>`;
+}
+
 const TABS = [
   {id:'hoy', label:'HOY'},
+  {id:'comer', label:'COMER'},
+  {id:'ejercicio', label:'EJERCICIO'},
   {id:'perfil', label:'PERFIL'},
   {id:'medidas', label:'MEDIDAS'},
   {id:'progreso', label:'PROGRESO'},
@@ -778,6 +922,8 @@ const TABS = [
 ];
 function renderApp(){
   const body = state.tab==='hoy' ? renderHoy()
+    : state.tab==='comer' ? renderComer()
+    : state.tab==='ejercicio' ? renderEjercicio()
     : state.tab==='perfil' ? renderPerfil()
     : state.tab==='medidas' ? renderMedidas()
     : state.tab==='progreso' ? renderProgreso()
@@ -988,6 +1134,23 @@ document.addEventListener('click', (e)=>{
     const id = btn.dataset.id;
     state.notes[state.selDate] = (state.notes[state.selDate]||[]).filter(x=>x.id!==id);
     saveNotes(); renderApp();
+  }
+  else if(action==='addExercise'){
+    const idx = Number(document.getElementById('ex_act').value);
+    const min = Number(document.getElementById('ex_min').value);
+    const w = Number(document.getElementById('ex_weight').value) || 70;
+    if(!min || min<=0) return;
+    const act = ACTIVITIES[idx];
+    const kcal = exerciseKcal(act.met, w, min);
+    const list = state.exerciseLog[state.selDate] ? state.exerciseLog[state.selDate].slice() : [];
+    list.push({ id: uid(), name: act.n, min: min, kcal: kcal, t: Date.now() });
+    state.exerciseLog[state.selDate] = list;
+    saveExercise(); renderApp();
+  }
+  else if(action==='delExercise'){
+    const id = btn.dataset.id;
+    state.exerciseLog[state.selDate] = (state.exerciseLog[state.selDate]||[]).filter(x=>x.id!==id);
+    saveExercise(); renderApp();
   }
   else if(action==='pickFood'){
     const idx = Number(btn.dataset.idx);
