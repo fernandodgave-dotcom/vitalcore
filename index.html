@@ -303,6 +303,8 @@ const state = {
   notes: load('vc_notes', {}),
   photo: load('vc_photo', null),
   exerciseLog: load('vc_exercise', {}),
+  mealPrefs: load('vc_mealprefs', {}),
+  mealShuffle: 0,
 };
 const saveProfile = () => save('vc_profile', state.profile);
 const saveFoodLog = () => save('vc_foodlog', state.foodLog);
@@ -310,6 +312,7 @@ const saveWaterLog = () => save('vc_waterlog', state.waterLog);
 const saveMeasurements = () => save('vc_measurements', state.measurements);
 const saveNotes = () => save('vc_notes', state.notes);
 const saveExercise = () => save('vc_exercise', state.exerciseLog);
+const saveMealPrefs = () => save('vc_mealprefs', state.mealPrefs);
 let pkgCalcOpen = false;
 
 /* ---------- icons (inline svg) ---------- */
@@ -779,6 +782,11 @@ const MEAL_IDEAS = {
     {n:'Yogur natural con fresas y avena', kcal:250, p:'14g'},
     {n:'Molletes de frijol con queso panela', kcal:340, p:'18g'},
     {n:'Licuado de leche, avena y fruta', kcal:300, p:'16g'},
+    {n:'Chilaquiles verdes con huevo y pollo', kcal:420, p:'28g'},
+    {n:'Huevo con jamón de pavo y tostadas', kcal:310, p:'24g'},
+    {n:'Omelette de espinaca y queso panela', kcal:280, p:'22g'},
+    {n:'Tostadas de frijol con aguacate', kcal:330, p:'12g'},
+    {n:'Hot cakes de avena con fruta', kcal:350, p:'15g'},
   ],
   comida: [
     {n:'Pechuga de pollo a la plancha con arroz y ensalada', kcal:480, p:'42g'},
@@ -787,6 +795,12 @@ const MEAL_IDEAS = {
     {n:'Bistec de res con nopales asados', kcal:450, p:'44g'},
     {n:'Sopa de lentejas con verduras y tortilla', kcal:380, p:'22g'},
     {n:'Fajitas de pollo con pimientos', kcal:440, p:'40g'},
+    {n:'Milanesa de pollo al horno con ensalada', kcal:470, p:'42g'},
+    {n:'Albóndigas en caldillo de jitomate', kcal:430, p:'34g'},
+    {n:'Camarones a la plancha con arroz', kcal:400, p:'38g'},
+    {n:'Pollo en salsa verde con calabacitas', kcal:410, p:'40g'},
+    {n:'Tacos de pescado con ensalada de col', kcal:450, p:'36g'},
+    {n:'Chile relleno de atún al horno', kcal:390, p:'32g'},
   ],
   cena: [
     {n:'Ensalada grande con atún', kcal:300, p:'30g'},
@@ -794,12 +808,21 @@ const MEAL_IDEAS = {
     {n:'Caldo de pollo con verduras', kcal:280, p:'26g'},
     {n:'Huevo cocido con aguacate y tostada', kcal:290, p:'16g'},
     {n:'Requesón con verduras y galletas integrales', kcal:260, p:'22g'},
+    {n:'Sincronizadas de pavo y panela', kcal:340, p:'24g'},
+    {n:'Sopa de verduras con pollo deshebrado', kcal:270, p:'24g'},
+    {n:'Tostadas de tinga ligera', kcal:320, p:'26g'},
+    {n:'Ensalada de pollo con aguacate', kcal:350, p:'34g'},
+    {n:'Wrap integral de pavo y verduras', kcal:330, p:'26g'},
   ],
   snack: [
     {n:'Manzana con crema de cacahuate', kcal:200, p:'6g'},
     {n:'Puñado de almendras', kcal:170, p:'6g'},
     {n:'Zanahorias con hummus', kcal:150, p:'5g'},
     {n:'Yogur griego', kcal:120, p:'12g'},
+    {n:'Plátano con un puño de nueces', kcal:220, p:'5g'},
+    {n:'Palitos de jícama con limón y chile', kcal:80, p:'2g'},
+    {n:'Requesón con fruta', kcal:160, p:'14g'},
+    {n:'Huevo cocido con fruta', kcal:140, p:'8g'},
   ],
 };
 function pickN(arr, n, seed){
@@ -811,6 +834,13 @@ function pickN(arr, n, seed){
   }
   return out;
 }
+// modos de intensidad por comida
+const MEAL_MODES = {
+  nada:   {label:'Nada',   mult:0,    color:'var(--muted)'},
+  ligero: {label:'Ligero', mult:0.65, color:'var(--water)'},
+  normal: {label:'Normal', mult:1,    color:'var(--energy)'},
+  alto:   {label:'Alto',   mult:1.35, color:'var(--carbs)'},
+};
 function renderComer(){
   const p=state.profile;
   const goal=p.calGoal||2000;
@@ -820,35 +850,69 @@ function renderComer(){
     {label:'Cena', pct:0.24, key:'cena'},
     {label:'Snack', pct:0.10, key:'snack'},
   ];
-  const seed = parseInt(state.selDate.replace(/-/g,''),10)%97;
+  // semilla: fecha + shuffle manual. Cambia cada día o cuando pulsas "cambiar opciones"
+  const seed = (parseInt(state.selDate.replace(/-/g,''),10) + state.mealShuffle*13) % 97;
+
+  // ¿cuánto suman las comidas activas? (para mostrar total planeado del día)
+  let planned=0;
+  dist.forEach(function(d){
+    const mode=state.mealPrefs[d.key]||'normal';
+    planned += Math.round(goal*d.pct*MEAL_MODES[mode].mult);
+  });
+
   const cards = dist.map(function(d){
-    const target=Math.round(goal*d.pct);
-    const ideas=pickN(MEAL_IDEAS[d.key], 3, seed);
-    return `
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;">
-      <div class="row between" style="margin-bottom:10px;">
-        <span class="disp" style="font-size:15px;font-weight:600;color:var(--energy);">${d.label}</span>
-        <span class="mono" style="font-size:12px;color:var(--muted);">~${target} kcal objetivo</span>
-      </div>
-      ${ideas.map(function(it){return `
+    const mode=state.mealPrefs[d.key]||'normal';
+    const modeInfo=MEAL_MODES[mode];
+    const target=Math.round(goal*d.pct*modeInfo.mult);
+    // botones de modo
+    const modeBtns=Object.keys(MEAL_MODES).map(function(mk){
+      const active=(mode===mk);
+      return `<button class="btn" data-action="mealMode" data-meal="${d.key}" data-mode="${mk}"
+        style="padding:4px 9px;font-size:11px;background:${active?MEAL_MODES[mk].color:'var(--surface2)'};color:${active?'#0B1410':'var(--muted)'};border:1px solid ${active?MEAL_MODES[mk].color:'var(--border)'};">${MEAL_MODES[mk].label}</button>`;
+    }).join('');
+
+    // cuántas opciones mostrar según modo
+    let ideasHtml;
+    if(mode==='nada'){
+      ideasHtml=`<p class="mono" style="font-size:11px;color:var(--muted);padding:6px 0;">Saltas esta comida. (Sus calorías se redistribuyen a las demás si ajustas.)</p>`;
+    }else{
+      const ideas=pickN(MEAL_IDEAS[d.key], 3, seed+d.key.length);
+      ideasHtml=ideas.map(function(it){
+        const adjK=Math.round(it.kcal*modeInfo.mult);
+        return `
         <div class="row between" style="padding:7px 0;border-bottom:1px solid var(--border);">
           <span style="font-size:13px;flex:1;">${it.n}</span>
-          <span class="mono" style="font-size:11px;color:var(--muted);white-space:nowrap;margin-left:8px;">${it.kcal} kcal · P ${it.p}</span>
-        </div>`;}).join('')}
+          <span class="mono" style="font-size:11px;color:var(--muted);white-space:nowrap;margin-left:8px;">~${adjK} kcal · P ${it.p}</span>
+        </div>`;
+      }).join('');
+    }
+
+    return `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;">
+      <div class="row between" style="margin-bottom:8px;">
+        <span class="disp" style="font-size:15px;font-weight:600;color:${modeInfo.color};">${d.label}</span>
+        <span class="mono" style="font-size:12px;color:var(--muted);">${mode==='nada'?'—':'~'+target+' kcal'}</span>
+      </div>
+      <div class="row" style="gap:5px;flex-wrap:wrap;margin-bottom:10px;">${modeBtns}</div>
+      ${ideasHtml}
     </div>`;
   }).join('');
-  const mealsPerDay = goal<1600?3:(goal<2200?4:5);
+
+  const activeMeals = dist.filter(function(d){ return (state.mealPrefs[d.key]||'normal')!=='nada'; }).length;
   return `
   <div class="card" style="background:linear-gradient(135deg,var(--surface),var(--surface2));">
-    <p class="section-title" style="margin-bottom:6px;">TU PLAN DE HOY</p>
-    <p style="margin:0 0 10px;font-size:14px;">Meta diaria: <strong style="color:var(--energy);">${goal} kcal</strong> · Objetivo: bajar de peso</p>
-    <p class="mono" style="font-size:12px;color:var(--muted);line-height:1.6;margin:0;">
-      Recomendado: <strong style="color:var(--text);">${mealsPerDay} comidas</strong> al día repartidas como abajo. Comer en porciones controladas ayuda a no llegar con hambre extrema y facilita el déficit.
+    <div class="row between" style="margin-bottom:6px;">
+      <p class="section-title" style="margin:0;">TU PLAN DE HOY</p>
+      <button class="btn" data-action="shuffleMeals" style="padding:5px 10px;font-size:11px;background:var(--surface2);color:var(--accent);border:1px solid var(--accent);">🔄 Cambiar opciones</button>
+    </div>
+    <p style="margin:6px 0 8px;font-size:14px;">Meta: <strong style="color:var(--energy);">${goal} kcal</strong> · Plan actual: <strong style="color:${planned>goal+50?'var(--carbs)':'var(--text)'};">${planned} kcal</strong> en ${activeMeals} comidas</p>
+    <p class="mono" style="font-size:11px;color:var(--muted);line-height:1.6;margin:0;">
+      Usa los botones <strong style="color:var(--text);">Nada / Ligero / Normal / Alto</strong> en cada comida para ajustar qué tanto comes. "Cambiar opciones" te muestra otros platillos.
     </p>
   </div>
   ${cards}
   <p class="mono" style="font-size:10px;color:var(--muted);text-align:center;margin-top:4px;line-height:1.6;">
-    Son ideas equilibradas, no una prescripción. Ajusta porciones a tu apetito y varía los alimentos.<br>Para un plan personalizado, consulta a un nutriólogo.
+    Las opciones cambian solas cada día (según la fecha) o al pulsar "Cambiar opciones".<br>Son ideas equilibradas, no una prescripción. Para un plan personalizado, consulta a un nutriólogo.
   </p>`;
 }
 
@@ -863,6 +927,14 @@ const ACTIVITIES = [
   {n:'Básquetbol', met:6.5},
   {n:'Pesas / gym', met:5.0},
   {n:'Saltar la cuerda', met:11.0},
+  {n:'Box', met:9.5},
+  {n:'Muay Thai / kickboxing', met:10.3},
+  {n:'BJJ / grappling', met:8.5},
+  {n:'MMA / sparring', met:10.0},
+  {n:'Karate / taekwondo', met:9.0},
+  {n:'Lucha / wrestling', met:8.0},
+  {n:'Costal / sombra (bag work)', met:7.8},
+  {n:'HIIT / crossfit', met:9.0},
   {n:'Baile', met:5.5},
   {n:'Yoga / estiramiento', met:2.8},
   {n:'Subir escaleras', met:8.8},
@@ -1151,6 +1223,16 @@ document.addEventListener('click', (e)=>{
     const id = btn.dataset.id;
     state.exerciseLog[state.selDate] = (state.exerciseLog[state.selDate]||[]).filter(x=>x.id!==id);
     saveExercise(); renderApp();
+  }
+  else if(action==='mealMode'){
+    const meal = btn.dataset.meal;
+    const mode = btn.dataset.mode;
+    state.mealPrefs[meal] = mode;
+    saveMealPrefs(); renderApp();
+  }
+  else if(action==='shuffleMeals'){
+    state.mealShuffle = (state.mealShuffle + 1) % 50;
+    renderApp();
   }
   else if(action==='pickFood'){
     const idx = Number(btn.dataset.idx);
