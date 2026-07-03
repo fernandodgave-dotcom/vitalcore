@@ -80,6 +80,7 @@ svg text{font-family:'JetBrains Mono',monospace;}
 <script>
 /* ---------- helpers ---------- */
 const todayStr = () => new Date().toISOString().slice(0,10);
+const nowTimeStr = () => { const d=new Date(); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); };
 function fmtDate(d){
   const dt = new Date(d+'T00:00:00');
   return dt.toLocaleDateString('es-MX',{weekday:'short',day:'2-digit',month:'short'});
@@ -534,6 +535,7 @@ function renderMedidas(){
     <form id="measForm">
       <div class="grid4" style="margin-bottom:10px;">
         <div><label class="lab">Fecha</label><input class="input" type="date" id="m_date" value="${todayStr()}"></div>
+        <div><label class="lab">Hora</label><input class="input" type="time" id="m_time" value="${nowTimeStr()}"></div>
         ${MFIELDS.map(f=>`<div><label class="lab">${f.label} (${f.unit})</label><input class="input" type="number" step="0.1" inputmode="decimal" id="m_${f.key}"></div>`).join('')}
       </div>
       <button type="submit" class="btn btn-primary disp row gap6" style="align-items:center;">${ICO.save} GUARDAR MEDICIÓN</button>
@@ -544,7 +546,7 @@ function renderMedidas(){
     return `
     <div class="entry">
       <div class="row between" style="margin-bottom:8px;">
-        <span class="disp" style="font-size:13px;font-weight:600;text-transform:capitalize;">${fmtDate(m.date)}</span>
+        <span class="disp" style="font-size:13px;font-weight:600;text-transform:capitalize;">${fmtDate(m.date)}${m.time?` <span class="mono" style="font-size:11px;color:var(--muted);font-weight:400;">· ${m.time}</span>`:''}</span>
         <button class="btn-danger-icon" data-action="delMeas" data-id="${m.id}">${ICO.trash}</button>
       </div>
       <div class="row wrap gap14">
@@ -1011,7 +1013,10 @@ function renderApp(){
         <h1 class="disp" style="font-size:26px;font-weight:700;margin:0;">VITAL<span style="color:var(--energy);">CORE</span></h1>
         <p class="mono" style="font-size:11px;color:var(--muted);margin:2px 0 0;">PANEL DE PROGRESO — CUERPO &amp; NUTRICIÓN</p>
       </div>
-      <div class="dot-live"></div>
+      <div style="text-align:right;">
+        <div id="liveClock" class="mono" style="font-size:20px;font-weight:700;color:var(--energy);line-height:1;">--:--</div>
+        <div id="liveDate" class="mono" style="font-size:10px;color:var(--muted);margin-top:3px;text-transform:capitalize;"></div>
+      </div>
     </div>
     <div class="tabbar">
       ${TABS.map(t=>`<button class="tab ${state.tab===t.id?'active':''} disp" data-action="setTab" data-tab="${t.id}">${t.label}</button>`).join('')}
@@ -1112,7 +1117,8 @@ function attachFormHandlers(){
     measForm.addEventListener('submit', (e)=>{
       e.preventDefault();
       const date = document.getElementById('m_date').value || todayStr();
-      const payload = {id: uid(), date};
+      const time = document.getElementById('m_time').value || nowTimeStr();
+      const payload = {id: uid(), date, time};
       let any = false;
       MFIELDS.forEach(f=>{
         const v = document.getElementById('m_'+f.key).value;
@@ -1351,7 +1357,21 @@ document.addEventListener('click', (e)=>{
   }
 });
 
+function tickClock(){
+  const el=document.getElementById('liveClock');
+  const de=document.getElementById('liveDate');
+  if(!el||!de) return;
+  const now=new Date();
+  const hh=String(now.getHours()).padStart(2,'0');
+  const mm=String(now.getMinutes()).padStart(2,'0');
+  const ss=String(now.getSeconds()).padStart(2,'0');
+  el.textContent=hh+':'+mm+':'+ss;
+  de.textContent=now.toLocaleDateString('es-MX',{weekday:'long',day:'2-digit',month:'long'});
+}
+setInterval(tickClock, 1000);
+
 renderApp();
+tickClock();
 </script>
 </body>
 </html>
